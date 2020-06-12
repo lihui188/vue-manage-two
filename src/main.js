@@ -1,12 +1,46 @@
-import Vue from "vue";
-import App from "./App.vue";
-import router from "./router";
-import store from "./store";
+/* eslint-disable prettier/prettier */
+import Vue from "vue"
+import App from "./App.vue"
+import router from "./router"
+import store from "./store"
 
-Vue.config.productionTip = false;
 
+import '@/assets/scss/reset.scss'
+
+//第三方包
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+
+
+import './mock/index'
+import http from '@/api/config'
+Vue.prototype.$http = http
+
+Vue.use(ElementUI);
+Vue.config.productionTip = false
+
+
+
+//路由拦截
+
+router.beforeEach((to, from, next) => {
+  // 防止刷新后vuex里丢失token
+  store.commit('getToken')
+  // 防止刷新后vuex里丢失标签列表tagList
+  store.commit('getMenu')
+  let token = store.state.user.token
+  // 过滤登录页，防止死循环
+  if (!token && to.name !== 'login') {
+    next({ name: 'login' })
+  } else {
+    next()
+  }
+})
 new Vue({
   router,
   store,
-  render: h => h(App)
-}).$mount("#app");
+  render: (h) => h(App),
+  created(){
+    store.commit('addMenu',router)
+  }
+}).$mount("#app")
